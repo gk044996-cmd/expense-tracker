@@ -4,26 +4,41 @@ import API from "../api";
 function TransactionList() {
     const [data, setData] = useState([]);
 
+    // ✅ fetch transactions
+    const fetchTransactions = async () => {
+        try {
+            const res = await API.get("/transactions");
+            setData(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     useEffect(() => {
-        API.get("/transactions").then(res => setData(res.data));
+        fetchTransactions();
     }, []);
 
+    // ✅ delete without reload
     const handleDelete = async (id) => {
-        await API.delete(`/transactions/${id}`);
-        window.location.reload();
+        try {
+            await API.delete(`/transactions/${id}`);
+            fetchTransactions(); // refresh list
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
         <div>
             <h3 className="text-lg font-semibold mb-2">Transactions</h3>
 
-            {data.map(item => (
+            {data.map((item) => (
                 <div
                     key={item._id}
                     className="flex justify-between items-center bg-gray-100 p-2 rounded mb-2"
                 >
                     <div>
-                        ₹{item.amount} | {item.category}
+                        ₹{item.amount} | {item.description}
                         <span className="ml-2">
                             ({item.type})
                         </span>
