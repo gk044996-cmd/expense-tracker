@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -12,10 +13,15 @@ app.use(express.json());
 const transactionRoutes = require("./routes/transactionRoutes");
 app.use("/api/transactions", transactionRoutes);
 
-// MongoDB connection
+// ✅ MongoDB connection (FIXED)
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.log(err));
+    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+
+// Test route (optional)
+app.get("/", (req, res) => {
+    res.send("API is running...");
+});
 
 // Port
 const PORT = process.env.PORT || 5000;

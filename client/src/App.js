@@ -19,10 +19,22 @@ function App() {
     // 🌙 Dark Mode
     const [darkMode, setDarkMode] = useState(false);
 
-    // 🔹 Fetch data
+    // 🔹 Fetch data (✅ FIXED)
     useEffect(() => {
-        API.get("/transactions").then(res => setTransactions(res.data));
+        API.get("/transactions")
+            .then(res => setTransactions(res.data))
+            .catch(err => console.error("Fetch Error:", err));
     }, []);
+
+    // 🔥 ADD TRANSACTION (✅ FIXED)
+    const addTransaction = async (data) => {
+        try {
+            const res = await API.post("/transactions", data);
+            setTransactions(prev => [res.data, ...prev]); // better update
+        } catch (err) {
+            console.error("Add Error:", err);
+        }
+    };
 
     // 🔹 Income
     const income = transactions
@@ -34,7 +46,6 @@ function App() {
         .filter(t => t.type === "expense")
         .reduce((acc, t) => acc + t.amount, 0);
 
-    // 🔔 Budget check
     const isOverBudget = expense > budget;
 
     return (
@@ -72,18 +83,19 @@ function App() {
                     </div>
                 )}
 
-                {/* 🔹 Budget Save/Edit */}
+                {/* 🔹 Budget */}
                 <div className="mb-4">
                     {isEditing ? (
                         <div className="flex gap-2">
                             <input
                                 type="number"
                                 value={tempBudget}
-                                onChange={(e) => setTempBudget(Number(e.target.value))}
+                                onChange={(e) =>
+                                    setTempBudget(Number(e.target.value))
+                                }
                                 className="w-full p-2 border rounded text-black"
                                 placeholder="Set Monthly Budget"
                             />
-
                             <button
                                 onClick={() => {
                                     setBudget(tempBudget);
@@ -96,10 +108,7 @@ function App() {
                         </div>
                     ) : (
                         <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                            <p className="font-semibold">
-                                Budget: ₹{budget}
-                            </p>
-
+                            <p className="font-semibold">Budget: ₹{budget}</p>
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="bg-yellow-400 px-3 py-1 rounded"
@@ -110,19 +119,17 @@ function App() {
                     )}
                 </div>
 
-                {/* ✅ Category Chart */}
+                {/* ✅ Charts */}
                 <Chart transactions={transactions} />
 
-                {/* ✅ Form */}
-                <AddTransaction />
+                {/* ✅ Add */}
+                <AddTransaction addTransaction={addTransaction} />
 
                 {/* ✅ List */}
-                <TransactionList />
+                <TransactionList transactions={transactions} />
 
-                {/* ✅ Monthly Chart */}
                 <MonthlyChart transactions={transactions} />
 
-                {/* ✅ Export */}
                 <ExportData transactions={transactions} />
             </div>
         </div>

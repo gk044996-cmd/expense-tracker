@@ -1,57 +1,73 @@
 import { useState } from "react";
-import API from "../api";
 
-function AddTransaction() {
-    const [form, setForm] = useState({
-        amount: "",
-        type: "expense",
-        category: "",
-        date: ""
-    });
+const AddTransaction = ({ addTransaction }) => {
+    const [text, setText] = useState("");
+    const [amount, setAmount] = useState("");
+    const [type, setType] = useState("expense");
 
-    const handleSubmit = async () => {
-        await API.post("/transactions", form);
-        window.location.reload();
+    const handleAdd = (e) => {
+        e.preventDefault(); // 🔥 prevents page reload
+
+        // ✅ validation
+        if (!text.trim() || !amount) {
+            alert("Please enter all fields");
+            return;
+        }
+
+        const transactionData = {
+            text: text.trim(),
+            amount: Number(amount), // 🔥 convert to number
+            type
+        };
+
+        // 🔥 call function from App.js
+        addTransaction(transactionData);
+
+        // ✅ clear inputs after adding
+        setText("");
+        setAmount("");
+        setType("expense");
     };
 
     return (
-        <div className="mb-4">
-            <div className="grid grid-cols-2 gap-2">
-                <input
-                    className="border p-2 rounded"
-                    placeholder="Amount"
-                    onChange={e => setForm({ ...form, amount: Number(e.target.value) })}
-                />
+        <form onSubmit={handleAdd} className="mb-4">
+            {/* 🔹 Description */}
+            <input
+                type="text"
+                placeholder="Enter description..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full p-2 border rounded mb-2 text-black"
+            />
 
-                <input
-                    className="border p-2 rounded"
-                    placeholder="Category"
-                    onChange={e => setForm({ ...form, category: e.target.value })}
-                />
+            {/* 🔹 Amount */}
+            <input
+                type="number"
+                placeholder="Enter amount..."
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full p-2 border rounded mb-2 text-black"
+            />
 
-                <input
-                    className="border p-2 rounded col-span-2"
-                    type="date"
-                    onChange={e => setForm({ ...form, date: e.target.value })}
-                />
+            {/* 🔹 Type */}
+            <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full p-2 border rounded mb-2 text-black"
+            >
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+            </select>
 
-                <select
-                    className="border p-2 rounded"
-                    onChange={e => setForm({ ...form, type: e.target.value })}
-                >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                </select>
-
-                <button
-                    className="bg-indigo-500 text-white rounded p-2"
-                    onClick={handleSubmit}
-                >
-                    Add
-                </button>
-            </div>
-        </div>
+            {/* 🔹 Button */}
+            <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white w-full p-2 rounded font-semibold"
+            >
+                Add Transaction
+            </button>
+        </form>
     );
-}
+};
 
 export default AddTransaction;

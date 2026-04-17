@@ -1,13 +1,15 @@
 const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/db");
+const router = express.Router();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const {
+    getTransactions,
+    addTransaction
+} = require("../controllers/transactionController");
 
-connectDB();
+// ✅ GET all transactions
+router.get("/", getTransactions);
 
-app.use("/api/transactions", require("./routes/transactionRoutes"));
+// ✅ ADD transaction
+router.post("/", addTransaction);
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+module.exports = router;
