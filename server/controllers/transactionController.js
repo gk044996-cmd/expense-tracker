@@ -1,65 +1,59 @@
 const Transaction = require("../models/Transaction");
 
-// ➕ Add Transaction
+// CREATE
 exports.addTransaction = async (req, res) => {
   try {
-    const { text, amount, type, category, date } = req.body;
-
-    // 🔥 Validation
-    if (!text || !amount || !type) {
-      return res.status(400).json({ message: "Required fields missing" });
-    }
-
     const newTransaction = new Transaction({
-      text,
-      amount: Number(amount),
-      type,
-      category: category || "General",
-      date: date || new Date().toISOString().split("T")[0]
+      ...req.body,
+      user: req.userId // 👈 attach user
     });
-
-    const saved = await newTransaction.save();
-    res.status(201).json(saved);
-
+    await newTransaction.save();
+    res.status(201).json(newTransaction);
   } catch (err) {
-    console.error("Add Error:", err); // 🔥 IMPORTANT
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// 📥 Get Transactions
+// READ (only user's data)
 exports.getTransactions = async (req, res) => {
   try {
-    const data = await Transaction.find().sort({ createdAt: -1 });
+    const data = await Transaction
+      .find({ user: req.userId }) // 👈 filter
+      .sort({ createdAt: -1 });
+
     res.json(data);
   } catch (err) {
-    console.error("Fetch Error:", err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ❌ Delete
+// DELETE (only own)
 exports.deleteTransaction = async (req, res) => {
   try {
-    await Transaction.findByIdAndDelete(req.params.id);
+    const tx = await Transaction.findOneAndDelete({
+      _id: req.params.id,
+      user: req.userId // 👈 ensure ownership
+    });
+
+    if (!tx) return res.status(404).json({ message: "Not found" });
     res.json({ message: "Deleted successfully" });
   } catch (err) {
-    console.error("Delete Error:", err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✏️ Update
+// UPDATE (only own)
 exports.updateTransaction = async (req, res) => {
   try {
-    const updated = await Transaction.findByIdAndUpdate(
-      req.params.id,
+    const updated = await Transaction.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId }, // 👈 ensure ownership
       req.body,
       { new: true }
     );
+
+    if (!updated) return res.status(404).json({ message: "Not found" });
     res.json(updated);
   } catch (err) {
-    console.error("Update Error:", err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };

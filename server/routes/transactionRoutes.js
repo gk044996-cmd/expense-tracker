@@ -1,4 +1,5 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
 const {
   addTransaction,
   getTransactions,
@@ -6,9 +7,11 @@ const {
   updateTransaction
 } = require("../controllers/transactionController");
 
-router.post("/", addTransaction);
-router.get("/", getTransactions);
-router.delete("/:id", deleteTransaction);
-router.put("/:id", updateTransaction);
+const auth = require("../middleware/authMiddleware");
+
+router.post("/", auth, addTransaction);
+router.get("/", auth, getTransactions);
+router.delete("/:id", auth, deleteTransaction);
+router.put("/:id", auth, updateTransaction);
 
 module.exports = router;

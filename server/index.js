@@ -5,27 +5,44 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
+// ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// ================= ROUTES =================
 const transactionRoutes = require("./routes/transactionRoutes");
+const authRoutes = require("./routes/authRoutes");
+
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/auth", authRoutes);
 
-// ✅ MongoDB connection (FIXED)
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
-
-// Test route (optional)
+// ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
-    res.send("API is running...");
+    res.send("✅ API is running...");
 });
 
-// Port
+// ================= DATABASE CONNECTION =================
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log("✅ MongoDB Connected");
+    })
+    .catch((err) => {
+        console.error("❌ MongoDB Connection Error:", err.message);
+        process.exit(1);
+    });
+
+// ================= ERROR HANDLER =================
+app.use((err, req, res, next) => {
+    console.error("🔥 Server Error:", err.message);
+    res.status(500).json({
+        message: "Internal Server Error",
+        error: err.message // 🔥 helps debugging
+    });
+});
+
+// ================= SERVER =================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
