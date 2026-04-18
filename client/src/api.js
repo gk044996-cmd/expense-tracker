@@ -1,14 +1,15 @@
 import axios from "axios";
 
+// ✅ YOUR RENDER BACKEND URL
+const BASE_URL = "https://expense-tracker-backend-egiz.onrender.com/api";
+
 const API = axios.create({
-    baseURL: "http://localhost:5000/api"
+    baseURL: BASE_URL
 });
 
-// attach token
+// ================= TOKEN ATTACH =================
 API.interceptors.request.use((req) => {
     const token = localStorage.getItem("token");
-
-    console.log("TOKEN:", token); // 🔍 debug
 
     if (token) {
         req.headers.Authorization = `Bearer ${token}`;
@@ -17,7 +18,7 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-// handle errors
+// ================= ERROR HANDLING =================
 API.interceptors.response.use(
     (res) => res,
     (err) => {
@@ -25,10 +26,10 @@ API.interceptors.response.use(
 
             if (!window.location.pathname.includes("login")) {
                 alert("Session expired. Please login again 🔐");
+                window.location.href = "/login";
             }
 
             localStorage.removeItem("token");
-            window.location.href = "/login";
         }
 
         return Promise.reject(err);
